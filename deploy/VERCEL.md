@@ -30,6 +30,15 @@ Why it broke before: Root was repo root (or mixed) while Output Directory pointe
 
 `SECRET_KEY`, `GEMINI_API_KEY`, `DEMO_MODE=true`, `USE_LIVE_GOOGLE=false`
 
+## Demo data (important)
+
+Vercel pe **PostgreSQL connected nahi hai**.  
+Dummy Rajveer Chinese data **in-memory seed** se aati hai (har serverless cold start pe).
+
+Login: `owner@rajveerchinese.demo` / `vyapaarai123`
+
+Local Docker Postgres (`docker compose --profile full`) sirf optional Python `backend/` ke liye hai — Next `/api/v1` abhi usko use nahi karta.
+
 ## Demo
 
 `owner@rajveerchinese.demo` / `vyapaarai123`

@@ -261,6 +261,10 @@ export async function dispatch(req: NextRequest, parts: string[]) {
   if (method === "POST" && path === "auth/login") {
     const payload = await bodyJson(req);
     const email = String(payload.email || "").toLowerCase();
+    // Demo account: re-seed if serverless instance lost in-memory data (no Postgres on Vercel).
+    if (email === DEMO_EMAIL) {
+      seedDemoWorkspace(store);
+    }
     const user = [...store.users.values()].find((u) => u.email === email);
     if (!user || !(await verifyPassword(String(payload.password || ""), user.hashed_password))) {
       throw new ApiError(401, "Invalid email or password");

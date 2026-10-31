@@ -424,13 +424,25 @@ export function seedDemoWorkspace(store: Store) {
   };
 }
 
-export function getStore(): Store {
-  if (!globalThis.__vyapaarStore) {
-    const store = createEmptyStore();
+/** Ensure Rajveer demo tenant always exists (Vercel serverless memory resets often; no Postgres yet). */
+export function ensureDemoSeeded(store: Store = getStoreRaw()) {
+  const hasDemoUser = [...store.users.values()].some((u) => u.email === DEMO_EMAIL);
+  const hasLocations = store.locations.size > 0;
+  if (!hasDemoUser || !hasLocations || !store.seeded) {
     seedDemoWorkspace(store);
-    globalThis.__vyapaarStore = store;
+  }
+  return store;
+}
+
+function getStoreRaw(): Store {
+  if (!globalThis.__vyapaarStore) {
+    globalThis.__vyapaarStore = createEmptyStore();
   }
   return globalThis.__vyapaarStore;
+}
+
+export function getStore(): Store {
+  return ensureDemoSeeded(getStoreRaw());
 }
 
 export function selectedLocationIds(store: Store, tenantId: string): string[] {
