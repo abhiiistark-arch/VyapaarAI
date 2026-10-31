@@ -24,8 +24,9 @@ export default function LoginPage() {
           password: form.get("password"),
         }),
       });
+      if (!data?.access_token) throw new Error("Login succeeded but no token returned");
       setToken(data.access_token);
-      router.push("/overview");
+      router.replace("/overview");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in");
     } finally {
