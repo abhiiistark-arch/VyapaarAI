@@ -1,4 +1,5 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+/** Same-origin Node API (Next.js route handlers). Override only if splitting hosts. */
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
 export function getToken() {
   if (typeof window === "undefined") return null;

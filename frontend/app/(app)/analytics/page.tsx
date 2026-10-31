@@ -136,7 +136,7 @@ export default function AnalyticsPage() {
       setNote(`Report ready: ${report.title}`);
       await load();
       const token = getToken();
-      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api/v1";
+      const base = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
       const res = await fetch(`${base}/analytics/reports/${report.id}/download`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });

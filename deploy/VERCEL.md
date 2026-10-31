@@ -1,12 +1,10 @@
-# Deploy VyapaarAI frontend on Vercel (free)
+# Deploy VyapaarAI on Vercel (frontend + Node API together)
 
 Repo: https://github.com/abhiiistark-arch/VyapaarAI
 
-Vercel hosts the **Next.js frontend only**.  
-FastAPI backend must run separately (Railway / Render / VPS / Docker).
+One Vercel project serves **Next.js UI + `/api/v1/*` Node routes** (FastAPI-shaped handlers under `frontend/server/`).
 
-**Never put** `GEMINI_API_KEY`, Google secrets, or `SECRET_KEY` in Vercel frontend env.  
-Frontend only needs the public API base URL.
+Python `backend/` remains as reference / optional self-host; production path is Node inside Next.
 
 ## Fast path (GitHub → Vercel)
 
@@ -14,26 +12,37 @@ Frontend only needs the public API base URL.
 2. Import `abhiiistark-arch/VyapaarAI`
 3. Set **Root Directory** = `frontend`
 4. Framework = Next.js (auto)
-5. Environment Variable (Production + Preview):
+5. Environment variables (Production + Preview):
 
-```
-NEXT_PUBLIC_API_URL=https://YOUR-PUBLIC-API-HOST/api/v1
-```
+| Name | Value | Notes |
+|------|--------|--------|
+| `SECRET_KEY` | long random string | JWT signing |
+| `GEMINI_API_KEY` | your key | server-only; AI features |
+| `DEMO_MODE` | `true` | demo login + sample data |
+| `USE_LIVE_GOOGLE` | `false` | until GBP OAuth is ready |
 
-6. Deploy → you get a public URL like `https://vyapaarai-xxxx.vercel.app`
+Do **not** set `NEXT_PUBLIC_API_URL` unless the API is on another host. Default is same-origin `/api/v1`.
 
-## Backend (required for login / demo data)
+6. Deploy → `https://your-app.vercel.app`
+
+## Demo login
+
+- Email: `owner@rajveerchinese.demo`
+- Password: `vyapaarai123`
+
+## Local
 
 ```bash
-cd backend
-cp .env.example .env
-# fill GEMINI_API_KEY + SECRET_KEY locally / on the API host only
-uvicorn app.main:app --host 0.0.0.0 --port 8000
+cd frontend
+cp .env.example .env.local
+# add GEMINI_API_KEY + SECRET_KEY
+npm install
+npm run dev
 ```
 
-CORS: set `CORS_ORIGINS` on the API to include your Vercel URL.
+Open http://localhost:3000 — API is at http://localhost:3000/api/v1/...
 
-## CLI (optional)
+## CLI
 
 ```bash
 cd frontend
@@ -41,7 +50,9 @@ npx vercel login
 npx vercel --prod
 ```
 
-## Files
-- `frontend/vercel.json`
-- root `vercel.json` (monorepo helpers; prefer Root Directory = `frontend`)
+## Layout
 
+- `frontend/app/api/v1/[...path]/route.ts` — catch-all → Node dispatcher
+- `frontend/server/` — config, auth, in-memory demo store, Gemini, route handlers (mirrors FastAPI `/api/v1`)
+- `frontend/vercel.json` — Next framework, `bom1`
+- root `vercel.json` — monorepo helper if Root Directory is unset

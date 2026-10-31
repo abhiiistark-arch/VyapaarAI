@@ -4,10 +4,11 @@ AI-powered Google Business Profile management for local businesses and agencies.
 
 ## What’s running now
 
-- **White / light UI** product shell
-- **Demo mode** with rich **Rajveer Chinese (Vadjal, Satara)** data from `chinese_web`
-- **Gemini** for descriptions, review drafts, and assistant
-- **Live Google GBP** can be switched on later with env flags only
+- **Next.js UI + Node `/api/v1`** (FastAPI-shaped routes under `frontend/server/`)
+- **Demo mode** with **Rajveer Chinese (Vadjal, Satara)** sample data
+- **Gemini** for descriptions, review drafts, posts, photos, assistant
+- **One Vercel deploy** for UI + API together
+- Python `backend/` kept as reference / optional self-host
 
 ### Demo login
 
@@ -25,84 +26,40 @@ DEMO_MODE=true
 USE_LIVE_GOOGLE=false
 ```
 
-When Google approves your project:
+When Google approves your project, add OAuth secrets and flip live flags (see `deploy/VERCEL.md`).
 
+## Local run (recommended)
+
+```bash
+cd frontend
+cp .env.example .env.local
+# set SECRET_KEY + GEMINI_API_KEY
+npm install
+npm run dev
 ```
-DEMO_MODE=false
-USE_LIVE_GOOGLE=true
-GOOGLE_CLIENT_ID=...
-GOOGLE_CLIENT_SECRET=...
-GOOGLE_REDIRECT_URI=https://YOUR_DOMAIN/api/v1/google/callback
-```
 
-Restart the API. Connect then opens Google’s **permissions** page directly (`prompt=consent`, scope `business.manage`).
+Open http://localhost:3000 — API is same-origin at `/api/v1/...`
 
-## Local run
-
-### Backend
+## Optional Python backend
 
 ```bash
 cd backend
 python -m venv .venv
 .venv\Scripts\activate
 pip install -r requirements.txt
-# edit .env — keep DEMO_MODE=true, add GEMINI_API_KEY
 uvicorn app.main:app --reload --port 8001
 ```
 
-Gemini free-tier model that works with the current key: `gemini-3.8-flash`  
-(also works: `gemini-3.5-flash-lite`, `gemini-flash-lite-latest`)
+Then point frontend with `NEXT_PUBLIC_API_URL=http://localhost:8001/api/v1`.
 
-### Frontend
+## Vercel (UI + API together)
 
-```bash
-cd frontend
-npm install
-# NEXT_PUBLIC_API_URL=http://localhost:8001/api/v1 in .env.local
-npm run dev
-```
+1. Import repo → **Root Directory** = `frontend`
+2. Env: `SECRET_KEY`, `GEMINI_API_KEY`, `DEMO_MODE=true`
+3. Do **not** set `NEXT_PUBLIC_API_URL` (defaults to `/api/v1`)
 
-Open http://localhost:3000  
-Demo login: `owner@rajveerchinese.demo` / `vyapaarai123`
-
-## VPS deploy (Docker)
-
-```bash
-# on the server, from project root
-cp backend/.env.example backend/.env
-# fill GEMINI_API_KEY, SECRET_KEY, FRONTEND_URL, BACKEND_URL, CORS_ORIGINS
-
-docker compose up -d --build
-```
-
-- Web: port `3000`
-- API: port `8000`
-
-Optional Postgres/Redis:
-
-```bash
-docker compose --profile full up -d
-```
-
-Then set `DATABASE_URL=postgresql+psycopg://vyapaarai:vyapaarai@postgres:5432/vyapaarai` in `backend/.env`.
-
-## Vercel (frontend only)
-
-Vercel free = Next.js frontend. API stays on VPS/Railway/Render.
-
-```bash
-npm i -g vercel
-cd frontend
-vercel login
-vercel                 # preview
-vercel --prod          # production
-```
-
-Dashboard: Root Directory = `frontend`, Framework = Next.js.  
-Env: `NEXT_PUBLIC_API_URL=https://YOUR-API-HOST/api/v1`
-
-Config files: `frontend/vercel.json`, `frontend/vercel.toml` (notes), root `vercel.json`, details in `deploy/VERCEL.md`.
+Details: `deploy/VERCEL.md`
 
 ## Health
 
-`GET /health` and `GET /api/v1/system/mode` show demo vs live Google status.
+`GET /api/v1/system/mode` shows demo vs live Google status and whether Gemini is configured.
