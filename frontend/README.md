@@ -1,11 +1,8 @@
-# Moved
+# VyapaarAI web
 
-The Next.js app now lives at the **repository root** (so Vercel detects `next` without a Root Directory workaround).
-
-Use:
+Next.js app + Node API routes. From this folder:
 
 ```bash
-# from repo root
 npm install
 npm run dev
 ```

@@ -6,8 +6,8 @@ function hydrateFromBackendEnv() {
   if (process.env.VERCEL || process.env.GEMINI_API_KEY) return;
   try {
     const candidates = [
-      path.join(process.cwd(), "backend", ".env"),
       path.join(process.cwd(), "..", "backend", ".env"),
+      path.join(process.cwd(), "backend", ".env"),
     ];
     const envPath = candidates.find((p) => fs.existsSync(p));
     if (!envPath) return;
