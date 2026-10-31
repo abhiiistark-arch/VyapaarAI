@@ -1,53 +1,47 @@
 # Deploy VyapaarAI frontend on Vercel (free)
 
+Repo: https://github.com/abhiiistark-arch/VyapaarAI
+
 Vercel hosts the **Next.js frontend only**.  
 FastAPI backend must run separately (Railway / Render / VPS / Docker).
 
-## Why not full-stack on Vercel free?
-- Next.js → perfect for Vercel
-- FastAPI long-running API + SQLite/workers → not a good fit for Vercel serverless free tier
+**Never put** `GEMINI_API_KEY`, Google secrets, or `SECRET_KEY` in Vercel frontend env.  
+Frontend only needs the public API base URL.
 
-## 1) Deploy backend first
-Example (any host):
+## Fast path (GitHub → Vercel)
+
+1. Open https://vercel.com/new
+2. Import `abhiiistark-arch/VyapaarAI`
+3. Set **Root Directory** = `frontend`
+4. Framework = Next.js (auto)
+5. Environment Variable (Production + Preview):
+
+```
+NEXT_PUBLIC_API_URL=https://YOUR-PUBLIC-API-HOST/api/v1
+```
+
+6. Deploy → you get a public URL like `https://vyapaarai-xxxx.vercel.app`
+
+## Backend (required for login / demo data)
 
 ```bash
 cd backend
-pip install -r requirements.txt
+cp .env.example .env
+# fill GEMINI_API_KEY + SECRET_KEY locally / on the API host only
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Public URL example: `https://api.yourdomain.com`
+CORS: set `CORS_ORIGINS` on the API to include your Vercel URL.
 
-## 2) Frontend env on Vercel
-In Vercel Project → Settings → Environment Variables:
-
-```
-NEXT_PUBLIC_API_URL=https://api.yourdomain.com/api/v1
-```
-
-## 3) Vercel CLI commands
+## CLI (optional)
 
 ```bash
-npm i -g vercel
-
-# from repo root OR frontend folder
 cd frontend
-vercel login
-vercel          # preview deploy
-vercel --prod   # production deploy
+npx vercel login
+npx vercel --prod
 ```
 
-Or connect the GitHub repo in Vercel dashboard:
-- Root Directory: `frontend`
-- Framework Preset: Next.js
-- Build Command: `npm run build`
-- Install Command: `npm install`
-- Output: default Next.js
+## Files
+- `frontend/vercel.json`
+- root `vercel.json` (monorepo helpers; prefer Root Directory = `frontend`)
 
-## 4) Files
-- `frontend/vercel.json` — frontend project config
-- root `vercel.json` — optional if deploying from monorepo root (set Root Directory to `frontend` in dashboard)
-
-## Note on `.toml`
-Vercel’s native project config is **`vercel.json`** (not `.toml`).  
-If you use Railway/Render for API, those often use `railway.toml` / `render.yaml` separately.
