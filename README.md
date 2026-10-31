@@ -54,11 +54,13 @@ Then point frontend with `NEXT_PUBLIC_API_URL=http://localhost:8001/api/v1`.
 
 ## Vercel (UI + API together)
 
-1. Import repo → **Root Directory** = `frontend`
+**Must set Root Directory = `frontend`** (otherwise `NEXT_NO_VERSION` — Next is not at repo root).
+
+1. Import repo → Root Directory = `frontend` → Framework Next.js
 2. Env: `SECRET_KEY`, `GEMINI_API_KEY`, `DEMO_MODE=true`
 3. Do **not** set `NEXT_PUBLIC_API_URL` (defaults to `/api/v1`)
 
-Details: `deploy/VERCEL.md`
+Details / fix for failed deploys: `deploy/VERCEL.md`
 
 ## Health
 

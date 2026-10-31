@@ -2,17 +2,27 @@
 
 Repo: https://github.com/abhiiistark-arch/VyapaarAI
 
-One Vercel project serves **Next.js UI + `/api/v1/*` Node routes** (FastAPI-shaped handlers under `frontend/server/`).
+One Vercel project serves **Next.js UI + `/api/v1/*`** (handlers in `frontend/server/`).
 
-Python `backend/` remains as reference / optional self-host; production path is Node inside Next.
+## Critical: Root Directory = `frontend`
 
-## Fast path (GitHub → Vercel)
+If you see **`NEXT_NO_VERSION` / No Next.js version detected**, Vercel is building from the **repo root** (no `next` there). The app lives in **`frontend/`**.
 
-1. Open https://vercel.com/new
-2. Import `abhiiistark-arch/VyapaarAI`
-3. Set **Root Directory** = `frontend`
-4. Framework = Next.js (auto)
-5. Environment variables (Production + Preview):
+### Fix existing Vercel project
+
+1. Open the project → **Settings** → **General**
+2. **Root Directory** → **Edit** → set to `frontend` → **Save**
+3. **Settings** → **Build & Development Settings**
+   - Framework Preset: **Next.js**
+   - Clear any custom **Install Command** / **Build Command** / **Output Directory** overrides (use defaults)
+4. **Deployments** → latest → **Redeploy** (or push a new commit)
+
+### New import
+
+1. https://vercel.com/new → import `abhiiistark-arch/VyapaarAI`
+2. **Root Directory** = `frontend` (click Edit before deploy)
+3. Framework = Next.js (auto)
+4. Env (Production + Preview):
 
 | Name | Value | Notes |
 |------|--------|--------|
@@ -21,9 +31,9 @@ Python `backend/` remains as reference / optional self-host; production path is 
 | `DEMO_MODE` | `true` | demo login + sample data |
 | `USE_LIVE_GOOGLE` | `false` | until GBP OAuth is ready |
 
-Do **not** set `NEXT_PUBLIC_API_URL` unless the API is on another host. Default is same-origin `/api/v1`.
+Do **not** set `NEXT_PUBLIC_API_URL` (defaults to same-origin `/api/v1`).
 
-6. Deploy → `https://your-app.vercel.app`
+5. Deploy
 
 ## Demo login
 
@@ -40,9 +50,7 @@ npm install
 npm run dev
 ```
 
-Open http://localhost:3000 — API is at http://localhost:3000/api/v1/...
-
-## CLI
+## CLI (from frontend)
 
 ```bash
 cd frontend
@@ -50,9 +58,11 @@ npx vercel login
 npx vercel --prod
 ```
 
+When prompted for root, choose / confirm the `frontend` folder.
+
 ## Layout
 
-- `frontend/app/api/v1/[...path]/route.ts` — catch-all → Node dispatcher
-- `frontend/server/` — config, auth, in-memory demo store, Gemini, route handlers (mirrors FastAPI `/api/v1`)
-- `frontend/vercel.json` — Next framework, `bom1`
-- root `vercel.json` — monorepo helper if Root Directory is unset
+- `frontend/package.json` — has `next` (this is what Vercel must see)
+- `frontend/vercel.json` — Next.js + `bom1`
+- `frontend/app/api/v1/[...path]/route.ts` — Node API
+- root `vercel.json` — regions only (do **not** put `cd frontend` install/build here)
