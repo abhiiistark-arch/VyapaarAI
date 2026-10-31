@@ -1,0 +1,14 @@
+# Vercel does not use .toml natively — vercel.json is the official config.
+# This file documents the same settings for teams that prefer TOML-style notes.
+# Prefer editing frontend/vercel.json for actual Vercel behavior.
+
+[build]
+framework = "nextjs"
+installCommand = "npm install"
+buildCommand = "npm run build"
+
+[deploy]
+regions = ["bom1"]
+
+# Required env in Vercel dashboard:
+# NEXT_PUBLIC_API_URL = https://YOUR-API-HOST/api/v1
