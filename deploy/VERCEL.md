@@ -1,48 +1,35 @@
 # Deploy VyapaarAI on Vercel
 
-Repo: https://github.com/abhiiistark-arch/VyapaarAI
+Next.js app = **`frontend/`** folder.
 
-Next.js app is in **`frontend/`**. Root `vercel.json` runs:
+## Solves `NEXT_OUTPUT_DIR_MISSING` / `frontend/.next` not found
 
-- Install: `cd frontend && npm install`
-- Build: `cd frontend && npm run build`
-- Output: `frontend/.next`
+**Do not set Output Directory to `frontend/.next`.**  
+For Next.js, Output Directory must stay **empty** (Vercel manages `.next` itself).
 
-## Vercel project settings (must match)
+### Exact dashboard settings
 
-**Settings → General → Root Directory:** leave **empty** (repo root), not `frontend`.
+1. **Settings → General → Root Directory**
+   - Set to: **`frontend`**
+   - Save
 
-**Settings → Build & Development:**
+2. **Settings → Build & Development Settings** → click Override / reset so these are defaults:
 
-| Setting | Value |
-|---------|--------|
-| Framework | Next.js |
-| Install Command | `cd frontend && npm install` |
-| Build Command | `cd frontend && npm run build` |
-| Output Directory | `frontend/.next` |
+| Setting | Correct value |
+|---------|----------------|
+| Framework Preset | **Next.js** |
+| Build Command | `npm run build` (default) — **not** `cd frontend && …` |
+| Install Command | `npm install` (default) — **not** `cd frontend && …` |
+| Output Directory | **LEAVE EMPTY** — delete `frontend/.next` if present |
 
-If you previously changed Root Directory to `frontend`, **clear it back to blank** or builds look for `frontend/frontend/.next` and fail.
+3. Redeploy latest commit
 
-## Env vars
+Why it broke before: Root was repo root (or mixed) while Output Directory pointed at `frontend/.next`, but Next wrote `.next` somewhere else / Vercel Next builder ignored that path → **not found**.
 
-| Name | Value |
-|------|--------|
-| `SECRET_KEY` | long random string |
-| `GEMINI_API_KEY` | your key |
-| `DEMO_MODE` | `true` |
-| `USE_LIVE_GOOGLE` | `false` |
+## Env
 
-Do not set `NEXT_PUBLIC_API_URL`.
+`SECRET_KEY`, `GEMINI_API_KEY`, `DEMO_MODE=true`, `USE_LIVE_GOOGLE=false`
 
-## Demo login
+## Demo
 
 `owner@rajveerchinese.demo` / `vyapaarai123`
-
-## Local
-
-```bash
-cd frontend
-cp .env.example .env.local
-npm install
-npm run dev
-```
