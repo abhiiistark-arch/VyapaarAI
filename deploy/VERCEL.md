@@ -1,68 +1,43 @@
-# Deploy VyapaarAI on Vercel (frontend + Node API together)
+# Deploy VyapaarAI on Vercel
 
 Repo: https://github.com/abhiiistark-arch/VyapaarAI
 
-One Vercel project serves **Next.js UI + `/api/v1/*`** (handlers in `frontend/server/`).
+Next.js + `/api/v1` Node API live at the **repository root** (`package.json` has `next`).
 
-## Critical: Root Directory = `frontend`
+## Fix `NEXT_NO_VERSION` (important)
 
-If you see **`NEXT_NO_VERSION` / No Next.js version detected**, Vercel is building from the **repo root** (no `next` there). The app lives in **`frontend/`**.
+If Root Directory was previously set to `frontend`, **clear it**:
 
-### Fix existing Vercel project
+1. Vercel → Project → **Settings → General → Root Directory**
+2. Set to **empty / `.`** (repository root) — **not** `frontend`
+3. **Build & Development Settings**: Framework = **Next.js**, clear custom Install/Build/Output overrides
+4. **Redeploy**
 
-1. Open the project → **Settings** → **General**
-2. **Root Directory** → **Edit** → set to `frontend` → **Save**
-3. **Settings** → **Build & Development Settings**
-   - Framework Preset: **Next.js**
-   - Clear any custom **Install Command** / **Build Command** / **Output Directory** overrides (use defaults)
-4. **Deployments** → latest → **Redeploy** (or push a new commit)
+## New project
 
-### New import
+1. Import `abhiiistark-arch/VyapaarAI`
+2. Root Directory = **leave blank** (repo root)
+3. Framework = Next.js
+4. Env:
 
-1. https://vercel.com/new → import `abhiiistark-arch/VyapaarAI`
-2. **Root Directory** = `frontend` (click Edit before deploy)
-3. Framework = Next.js (auto)
-4. Env (Production + Preview):
+| Name | Value |
+|------|--------|
+| `SECRET_KEY` | long random string |
+| `GEMINI_API_KEY` | your Gemini key |
+| `DEMO_MODE` | `true` |
+| `USE_LIVE_GOOGLE` | `false` |
 
-| Name | Value | Notes |
-|------|--------|--------|
-| `SECRET_KEY` | long random string | JWT signing |
-| `GEMINI_API_KEY` | your key | server-only; AI features |
-| `DEMO_MODE` | `true` | demo login + sample data |
-| `USE_LIVE_GOOGLE` | `false` | until GBP OAuth is ready |
-
-Do **not** set `NEXT_PUBLIC_API_URL` (defaults to same-origin `/api/v1`).
-
-5. Deploy
+Do not set `NEXT_PUBLIC_API_URL` (defaults to `/api/v1`).
 
 ## Demo login
 
-- Email: `owner@rajveerchinese.demo`
-- Password: `vyapaarai123`
+- `owner@rajveerchinese.demo` / `vyapaarai123`
 
 ## Local
 
 ```bash
-cd frontend
+# repo root
 cp .env.example .env.local
-# add GEMINI_API_KEY + SECRET_KEY
 npm install
 npm run dev
 ```
-
-## CLI (from frontend)
-
-```bash
-cd frontend
-npx vercel login
-npx vercel --prod
-```
-
-When prompted for root, choose / confirm the `frontend` folder.
-
-## Layout
-
-- `frontend/package.json` — has `next` (this is what Vercel must see)
-- `frontend/vercel.json` — Next.js + `bom1`
-- `frontend/app/api/v1/[...path]/route.ts` — Node API
-- root `vercel.json` — regions only (do **not** put `cd frontend` install/build here)

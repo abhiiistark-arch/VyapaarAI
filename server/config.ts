@@ -5,8 +5,12 @@ import path from "path";
 function hydrateFromBackendEnv() {
   if (process.env.VERCEL || process.env.GEMINI_API_KEY) return;
   try {
-    const envPath = path.join(process.cwd(), "..", "backend", ".env");
-    if (!fs.existsSync(envPath)) return;
+    const candidates = [
+      path.join(process.cwd(), "backend", ".env"),
+      path.join(process.cwd(), "..", "backend", ".env"),
+    ];
+    const envPath = candidates.find((p) => fs.existsSync(p));
+    if (!envPath) return;
     const text = fs.readFileSync(envPath, "utf8");
     for (const line of text.split(/\r?\n/)) {
       const trimmed = line.trim();

@@ -4,11 +4,10 @@ AI-powered Google Business Profile management for local businesses and agencies.
 
 ## What’s running now
 
-- **Next.js UI + Node `/api/v1`** (FastAPI-shaped routes under `frontend/server/`)
-- **Demo mode** with **Rajveer Chinese (Vadjal, Satara)** sample data
-- **Gemini** for descriptions, review drafts, posts, photos, assistant
-- **One Vercel deploy** for UI + API together
-- Python `backend/` kept as reference / optional self-host
+- **Next.js UI + Node `/api/v1`** at repo root (`server/` mirrors FastAPI routes)
+- **Demo mode** with Rajveer Chinese (Vadjal) sample data
+- **Gemini** for copy, replies, posts, photos
+- **One Vercel deploy** (root = Next app)
 
 ### Demo login
 
@@ -17,51 +16,23 @@ email: owner@rajveerchinese.demo
 password: vyapaarai123
 ```
 
-## Google APIs later (no rewrite)
-
-While GBP access is pending:
-
-```
-DEMO_MODE=true
-USE_LIVE_GOOGLE=false
-```
-
-When Google approves your project, add OAuth secrets and flip live flags (see `deploy/VERCEL.md`).
-
-## Local run (recommended)
+## Local run
 
 ```bash
-cd frontend
 cp .env.example .env.local
 # set SECRET_KEY + GEMINI_API_KEY
 npm install
 npm run dev
 ```
 
-Open http://localhost:3000 — API is same-origin at `/api/v1/...`
+Open http://localhost:3000
 
-## Optional Python backend
+Optional Python API still under `backend/` if you want it separately.
 
-```bash
-cd backend
-python -m venv .venv
-.venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8001
-```
+## Vercel
 
-Then point frontend with `NEXT_PUBLIC_API_URL=http://localhost:8001/api/v1`.
+Root Directory must be **blank / `.`** (app is at repo root, not `frontend/`).
 
-## Vercel (UI + API together)
+Env: `SECRET_KEY`, `GEMINI_API_KEY`, `DEMO_MODE=true`
 
-**Must set Root Directory = `frontend`** (otherwise `NEXT_NO_VERSION` — Next is not at repo root).
-
-1. Import repo → Root Directory = `frontend` → Framework Next.js
-2. Env: `SECRET_KEY`, `GEMINI_API_KEY`, `DEMO_MODE=true`
-3. Do **not** set `NEXT_PUBLIC_API_URL` (defaults to `/api/v1`)
-
-Details / fix for failed deploys: `deploy/VERCEL.md`
-
-## Health
-
-`GET /api/v1/system/mode` shows demo vs live Google status and whether Gemini is configured.
+See `deploy/VERCEL.md` if you hit `NEXT_NO_VERSION`.
