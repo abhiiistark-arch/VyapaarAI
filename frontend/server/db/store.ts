@@ -58,6 +58,8 @@ export type Review = {
   reply_updated_at: string | null;
   is_answered: boolean;
   sentiment: string;
+  /** Who wrote the owner reply: demo seed, AI assist, or manual owner */
+  reply_source?: "demo_seed" | "ai" | "owner" | null;
 };
 
 export type Post = {
@@ -312,6 +314,7 @@ export function seedDemoWorkspace(store: Store) {
       reply_updated_at: reply ? daysAgoIso(days + 0.25) : null,
       is_answered: answered,
       sentiment: stars >= 4 ? "positive" : stars === 3 ? "neutral" : "negative",
+      reply_source: reply ? "demo_seed" : null,
     });
   }
 
@@ -446,10 +449,57 @@ export function reviewStats(store: Store, tenantId: string, locationIds: string[
     (r) => r.tenant_id === tenantId && (!locationIds.length || locationIds.includes(r.location_id))
   );
   const avg = rows.length ? rows.reduce((s, r) => s + r.star_rating, 0) / rows.length : 0;
+  const bySentiment = { positive: 0, neutral: 0, negative: 0 };
+  const byStars: Record<string, number> = { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 };
+  for (const r of rows) {
+    const s = (r.sentiment || "").toLowerCase();
+    if (s === "positive" || s === "neutral" || s === "negative") bySentiment[s] += 1;
+    else if (r.star_rating >= 4) bySentiment.positive += 1;
+    else if (r.star_rating === 3) bySentiment.neutral += 1;
+    else bySentiment.negative += 1;
+    const key = String(Math.min(5, Math.max(1, r.star_rating || 1)));
+    byStars[key] = (byStars[key] || 0) + 1;
+  }
+
+  // Daily volume series (last 30 days) for line chart
+  const end = new Date();
+  end.setUTCHours(12, 0, 0, 0);
+  const series: Array<{
+    date: string;
+    total: number;
+    positive: number;
+    neutral: number;
+    negative: number;
+    avg_rating: number;
+  }> = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(end);
+    d.setUTCDate(end.getUTCDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const dayRows = rows.filter((r) => (r.review_created_at || "").slice(0, 10) === key);
+    const dayAvg = dayRows.length
+      ? dayRows.reduce((s, r) => s + r.star_rating, 0) / dayRows.length
+      : 0;
+    series.push({
+      date: key,
+      total: dayRows.length,
+      positive: dayRows.filter((r) => (r.sentiment || "").toLowerCase() === "positive" || r.star_rating >= 4).length,
+      neutral: dayRows.filter((r) => (r.sentiment || "").toLowerCase() === "neutral" || r.star_rating === 3).length,
+      negative: dayRows.filter((r) => (r.sentiment || "").toLowerCase() === "negative" || r.star_rating <= 2).length,
+      avg_rating: Math.round(dayAvg * 10) / 10,
+    });
+  }
+
+  const answered = rows.filter((r) => r.is_answered).length;
   return {
     reviews: rows.length,
     average_rating: Math.round(avg * 10) / 10,
     unanswered_reviews: rows.filter((r) => !r.is_answered).length,
+    answered_reviews: answered,
+    response_rate_pct: rows.length ? Math.round((answered / rows.length) * 1000) / 10 : 0,
+    by_sentiment: bySentiment,
+    by_stars: byStars,
+    series,
   };
 }
 

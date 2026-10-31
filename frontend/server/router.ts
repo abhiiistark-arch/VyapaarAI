@@ -17,6 +17,7 @@ import {
   type Post,
   type Review,
 } from "./db/store";
+import { runProfileAudit } from "./services/audit";
 import { engagementSummary } from "./services/engagement";
 import { GeminiError, generateJson, generateText } from "./services/gemini";
 import { generateMarketingImage } from "./services/media";
@@ -330,6 +331,29 @@ export async function dispatch(req: NextRequest, parts: string[]) {
     const locations = [...store.locations.values()]
       .filter((l) => l.tenant_id === tenantId)
       .sort((a, b) => a.title.localeCompare(b.title));
+    let profileCompleteness = {
+      percent: 0,
+      label: "Needs improvement",
+      tone: "warn" as string,
+      pillars: [] as Array<{ id: string; label: string; weight: number; score: number; weighted: number }>,
+    };
+    try {
+      const audit = runProfileAudit(store, tenantId, locationIds[0] || null);
+      profileCompleteness = {
+        percent: audit.overall_score,
+        label: audit.label,
+        tone: audit.tone,
+        pillars: audit.pillars.map((p) => ({
+          id: p.id,
+          label: p.label,
+          weight: p.weight,
+          score: p.score,
+          weighted: p.weighted,
+        })),
+      };
+    } catch {
+      /* no location yet */
+    }
     return json({
       connection: {
         status: connection?.status || "disconnected",
@@ -338,6 +362,7 @@ export async function dispatch(req: NextRequest, parts: string[]) {
         last_error: connection?.last_error || null,
       },
       engagement,
+      profile_completeness: profileCompleteness,
       stats: {
         businesses: [...store.accounts.values()].filter((a) => a.tenant_id === tenantId).length,
         locations: locationIds.length,
@@ -374,6 +399,24 @@ export async function dispatch(req: NextRequest, parts: string[]) {
         is_selected: l.is_selected,
       })),
     });
+  }
+
+  if (method === "GET" && (path === "audit" || path === "audit/run")) {
+    const locationId = url.searchParams.get("location_id");
+    try {
+      return json(runProfileAudit(store, tenantId, locationId));
+    } catch (err) {
+      throw new ApiError(404, err instanceof Error ? err.message : "Audit failed");
+    }
+  }
+
+  if (method === "POST" && path === "audit/run") {
+    const payload = await bodyJson(req);
+    try {
+      return json(runProfileAudit(store, tenantId, payload.location_id || null));
+    } catch (err) {
+      throw new ApiError(404, err instanceof Error ? err.message : "Audit failed");
+    }
   }
 
   // --- google ---
@@ -656,9 +699,12 @@ Return {"summary":"...","cta_type":"LEARN_MORE","hashtags":[]}`,
       ...generated,
       media: saved,
       note:
-        generated.generation_source === "gemini_image"
-          ? "AI image ready."
-          : "AI poster generated (image-model quota busy — SVG poster fallback used).",
+        generated.note ||
+        (generated.generation_source === "gemini_image"
+          ? "Photorealistic AI image ready."
+          : generated.generation_source === "photorealistic_fallback"
+            ? "Photorealistic image ready (alternate engine)."
+            : "Placeholder visual — retry for a photo."),
     });
   }
 

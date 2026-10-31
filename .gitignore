@@ -8,6 +8,7 @@
 !**/.env.example
 **/node_modules/
 **/.next/
+**/*.tsbuildinfo
 backend/media/generated/*
 !backend/media/generated/.gitkeep
 **/.turbo/
