@@ -127,14 +127,16 @@ function getAutomationData(tenantId: string) {
   };
 }
 
-function publishReply(review: Review, reply: string) {
+function publishReply(review: Review, reply: string, source: "ai" | "owner" | "demo_seed" = "owner") {
   review.reply_comment = reply;
   review.reply_updated_at = new Date().toISOString();
   review.is_answered = true;
+  review.reply_source = source;
   return {
     review_id: review.id,
     reply_comment: reply,
     is_answered: true,
+    reply_source: source,
     applied_locally: true,
     pushed_to_google: false,
     note: "Demo mode — reply saved locally (Google publish when live mode is on).",
@@ -480,6 +482,7 @@ export async function dispatch(req: NextRequest, parts: string[]) {
         reply_comment: r.reply_comment,
         is_answered: r.is_answered,
         sentiment: r.sentiment,
+        reply_source: r.reply_source || (r.reply_comment ? "demo_seed" : null),
         location_id: r.location_id,
       })),
       stats: reviewStats(store, tenantId, locationIds),
@@ -519,19 +522,22 @@ Return JSON {"reply":"...","tone":"..."}`,
     if (!review || review.tenant_id !== tenantId) throw new ApiError(404, "Review not found");
     const reply = String(payload.reply || "");
     if (reply.length < 2) throw new ApiError(400, "Reply too short");
+    const source = payload.source === "ai" ? "ai" : "owner";
     if (!payload.publish) {
       review.reply_comment = reply;
       review.reply_updated_at = new Date().toISOString();
+      review.reply_source = source;
       return json({
         review_id: review.id,
         reply_comment: reply,
         is_answered: review.is_answered,
+        reply_source: source,
         applied_locally: true,
         pushed_to_google: false,
         note: "Reply saved as editable draft.",
       });
     }
-    return json(publishReply(review, reply));
+    return json(publishReply(review, reply, source));
   }
 
   // --- posts ---
