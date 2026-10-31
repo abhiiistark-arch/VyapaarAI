@@ -61,6 +61,12 @@ export default function ReviewsPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [stats, setStats] = useState<ReviewStats | null>(null);
   const [filter, setFilter] = useState<"all" | "unanswered" | "negative" | "positive" | "neutral">("all");
+  const [dateMode, setDateMode] = useState<"all" | "single" | "range">("all");
+  const [singleDate, setSingleDate] = useState("");
+  const [rangeStart, setRangeStart] = useState("");
+  const [rangeEnd, setRangeEnd] = useState("");
+  const [appliedStart, setAppliedStart] = useState("");
+  const [appliedEnd, setAppliedEnd] = useState("");
   const [busyId, setBusyId] = useState("");
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -68,10 +74,14 @@ export default function ReviewsPage() {
   const [error, setError] = useState("");
   const [note, setNote] = useState("");
 
-  async function load() {
+  async function load(opts?: { start?: string; end?: string }) {
     const qs = new URLSearchParams();
     if (filter === "unanswered") qs.set("answered", "false");
     if (filter === "negative" || filter === "positive" || filter === "neutral") qs.set("sentiment", filter);
+    const start = opts?.start ?? appliedStart;
+    const end = opts?.end ?? appliedEnd;
+    if (start) qs.set("start_date", start);
+    if (end) qs.set("end_date", end);
     const query = qs.toString() ? `?${qs}` : "";
     const data = await api<{ items: Review[]; stats: ReviewStats }>(`/reviews${query}`);
     const rows = data.items || [];
@@ -86,7 +96,46 @@ export default function ReviewsPage() {
 
   useEffect(() => {
     load().catch((err) => setError(err.message));
-  }, [filter]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, appliedStart, appliedEnd]);
+
+  function applyDateFilter() {
+    setError("");
+    if (dateMode === "all") {
+      setAppliedStart("");
+      setAppliedEnd("");
+      return;
+    }
+    if (dateMode === "single") {
+      if (!singleDate) {
+        setError("Pick a single date.");
+        return;
+      }
+      setAppliedStart(singleDate);
+      setAppliedEnd(singleDate);
+      return;
+    }
+    if (!rangeStart || !rangeEnd) {
+      setError("Pick both From and To dates for a range.");
+      return;
+    }
+    let start = rangeStart;
+    let end = rangeEnd;
+    if (start > end) [start, end] = [end, start];
+    setRangeStart(start);
+    setRangeEnd(end);
+    setAppliedStart(start);
+    setAppliedEnd(end);
+  }
+
+  function clearDates() {
+    setDateMode("all");
+    setSingleDate("");
+    setRangeStart("");
+    setRangeEnd("");
+    setAppliedStart("");
+    setAppliedEnd("");
+  }
 
   const chartData = useMemo(() => {
     return (stats?.series || []).map((row) => ({
@@ -173,6 +222,102 @@ export default function ReviewsPage() {
     >
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
       {note && <p className="mb-4 rounded-2xl bg-leaf-50 px-4 py-3 text-sm text-leaf-700">{note}</p>}
+
+      <section className="mb-6 surface rounded-[28px] p-5">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-400">Date filter</p>
+            <p className="mt-1 text-sm text-ink-500">Single day, or multi-day range (from → to)</p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(
+              [
+                ["all", "All time"],
+                ["single", "Single date"],
+                ["range", "Date range"],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setDateMode(key)}
+                className={`rounded-full px-4 py-2 text-sm font-semibold ${
+                  dateMode === key ? "bg-ink-900 text-white" : "border border-paper-300 bg-white text-ink-600"
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          {dateMode === "single" && (
+            <label className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-400">
+              Date
+              <input
+                type="date"
+                value={singleDate}
+                onChange={(e) => setSingleDate(e.target.value)}
+                className="mt-2 block rounded-2xl border border-paper-300 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-800"
+              />
+            </label>
+          )}
+          {dateMode === "range" && (
+            <>
+              <label className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-400">
+                From
+                <input
+                  type="date"
+                  value={rangeStart}
+                  max={rangeEnd || undefined}
+                  onChange={(e) => setRangeStart(e.target.value)}
+                  className="mt-2 block rounded-2xl border border-paper-300 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-800"
+                />
+              </label>
+              <label className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-400">
+                To
+                <input
+                  type="date"
+                  value={rangeEnd}
+                  min={rangeStart || undefined}
+                  onChange={(e) => setRangeEnd(e.target.value)}
+                  className="mt-2 block rounded-2xl border border-paper-300 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-ink-800"
+                />
+              </label>
+            </>
+          )}
+          {dateMode !== "all" && (
+            <button
+              type="button"
+              onClick={applyDateFilter}
+              className="rounded-full bg-leaf-500 px-4 py-2.5 text-sm font-semibold text-white"
+            >
+              Apply dates
+            </button>
+          )}
+          {(appliedStart || appliedEnd || dateMode !== "all") && (
+            <button
+              type="button"
+              onClick={clearDates}
+              className="rounded-full border border-paper-300 bg-white px-4 py-2.5 text-sm font-semibold text-ink-600"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+        {(appliedStart || appliedEnd) && (
+          <p className="mt-3 text-xs text-ink-400">
+            Showing reviews for <strong className="text-ink-700">{appliedStart || "…"}</strong>
+            {appliedEnd && appliedEnd !== appliedStart ? (
+              <>
+                {" "}
+                → <strong className="text-ink-700">{appliedEnd}</strong>
+              </>
+            ) : null}
+          </p>
+        )}
+      </section>
 
       <section className="mb-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <article className="surface rounded-[24px] p-5">

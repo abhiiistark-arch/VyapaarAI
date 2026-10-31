@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CompletenessRing } from "@/components/CompletenessRing";
+import { CompletenessPanel } from "@/components/CompletenessPanel";
 import { api } from "@/lib/api";
 import { useI18n } from "@/lib/i18n/context";
 import type { TranslationKey } from "@/lib/i18n/translations";
@@ -177,37 +177,17 @@ export default function OverviewPage() {
 
       {error && <p className="mt-6 text-sm text-red-600">{error}</p>}
 
-      <section className="mt-6 surface rounded-[28px] p-6">
-        <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-xl text-center lg:text-left">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-400">
-              {t("overview.completeness")}
-            </p>
-            <p className="mt-2 text-sm text-ink-500">{t("overview.completenessHint")}</p>
-            <Link
-              href="/audit"
-              className="mt-4 inline-flex rounded-full border border-paper-300 bg-white px-4 py-2 text-sm font-semibold text-ink-700"
-            >
-              {t("overview.viewAudit")}
-            </Link>
-          </div>
-          <CompletenessRing
-            percent={data?.profile_completeness?.percent ?? 0}
-            label={data?.profile_completeness?.label}
-          />
-          <div className="grid w-full max-w-md grid-cols-2 gap-2 sm:grid-cols-3">
-            {(data?.profile_completeness?.pillars || []).slice(0, 6).map((pillar) => (
-              <div key={pillar.id} className="rounded-2xl bg-paper-100 px-3 py-2">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-ink-400">
-                  {pillar.weight}%
-                </p>
-                <p className="mt-1 text-xs font-semibold text-ink-800 line-clamp-2">{pillar.label}</p>
-                <p className="mt-1 font-display text-lg font-semibold text-ink-900">{Math.round(pillar.score)}%</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <div className="mt-6">
+        <CompletenessPanel
+          percent={data?.profile_completeness?.percent ?? 0}
+          label={data?.profile_completeness?.label}
+          pillars={data?.profile_completeness?.pillars}
+          title={t("overview.completeness")}
+          hint={t("overview.completenessHint")}
+          cta={t("overview.viewAudit")}
+          loading={loading && !data?.profile_completeness}
+        />
+      </div>
 
       <section className="mt-6 grid gap-4 lg:grid-cols-2">
         <article className="surface rounded-[28px] p-5">

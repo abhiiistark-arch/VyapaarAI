@@ -462,9 +462,13 @@ export async function dispatch(req: NextRequest, parts: string[]) {
   // --- reviews ---
   if (method === "GET" && path === "reviews") {
     const locationIds = resolveLocationIds(store, tenantId, url.searchParams.get("location_id"));
+    const start_date = url.searchParams.get("start_date");
+    const end_date = url.searchParams.get("end_date");
     let rows = [...store.reviews.values()].filter(
       (r) => r.tenant_id === tenantId && (!locationIds.length || locationIds.includes(r.location_id))
     );
+    if (start_date) rows = rows.filter((r) => (r.review_created_at || "").slice(0, 10) >= start_date);
+    if (end_date) rows = rows.filter((r) => (r.review_created_at || "").slice(0, 10) <= end_date);
     const sentiment = url.searchParams.get("sentiment");
     const answered = url.searchParams.get("answered");
     const minRating = url.searchParams.get("min_rating");
@@ -485,8 +489,8 @@ export async function dispatch(req: NextRequest, parts: string[]) {
         reply_source: r.reply_source || (r.reply_comment ? "demo_seed" : null),
         location_id: r.location_id,
       })),
-      stats: reviewStats(store, tenantId, locationIds),
-      scope: { location_ids: locationIds },
+      stats: reviewStats(store, tenantId, locationIds, { start_date, end_date }),
+      scope: { location_ids: locationIds, start_date, end_date },
     });
   }
 

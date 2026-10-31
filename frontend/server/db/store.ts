@@ -444,10 +444,21 @@ export function resolveLocationIds(store: Store, tenantId: string, locationId?: 
   return selectedLocationIds(store, tenantId);
 }
 
-export function reviewStats(store: Store, tenantId: string, locationIds: string[]) {
-  const rows = [...store.reviews.values()].filter(
+export function reviewStats(
+  store: Store,
+  tenantId: string,
+  locationIds: string[],
+  opts: { start_date?: string | null; end_date?: string | null } = {}
+) {
+  let rows = [...store.reviews.values()].filter(
     (r) => r.tenant_id === tenantId && (!locationIds.length || locationIds.includes(r.location_id))
   );
+  if (opts.start_date) {
+    rows = rows.filter((r) => (r.review_created_at || "").slice(0, 10) >= opts.start_date!);
+  }
+  if (opts.end_date) {
+    rows = rows.filter((r) => (r.review_created_at || "").slice(0, 10) <= opts.end_date!);
+  }
   const avg = rows.length ? rows.reduce((s, r) => s + r.star_rating, 0) / rows.length : 0;
   const bySentiment = { positive: 0, neutral: 0, negative: 0 };
   const byStars: Record<string, number> = { "1": 0, "2": 0, "3": 0, "4": 0, "5": 0 };
