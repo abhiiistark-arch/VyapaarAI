@@ -22,6 +22,17 @@ export function text(body: string, status = 200, headers?: Record<string, string
   });
 }
 
+export function pdf(bytes: Uint8Array, filename: string, status = 200) {
+  return new NextResponse(Buffer.from(bytes), {
+    status,
+    headers: {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Cache-Control": "no-store",
+    },
+  });
+}
+
 export function handleError(err: unknown) {
   if (err instanceof ApiError) {
     return json({ detail: err.detail }, err.status);

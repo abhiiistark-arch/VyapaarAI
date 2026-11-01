@@ -48,7 +48,7 @@ export default function HomePage() {
             Run every location from one calm desk.
           </h1>
           <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-500">
-            VyapaarAI helps local brands manage reviews, posts, SEO, and profile health —
+            Digital Dukan helps local brands manage reviews, posts, SEO, and profile health —
             with Gemini, and with a clear path to live Google APIs when your access is approved.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-4">

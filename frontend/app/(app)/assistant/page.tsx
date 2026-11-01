@@ -6,7 +6,7 @@ import { PageShell } from "@/components/PageShell";
 import { AiFeedback } from "@/components/AiFeedback";
 import { api } from "@/lib/api";
 
-type Turn = { role: "you" | "vyapaarai"; text: string; feedback?: boolean };
+type Turn = { role: "you" | "digital_dukan"; text: string; feedback?: boolean };
 
 const suggestions = [
   {
@@ -45,7 +45,7 @@ export default function AssistantPage() {
   const router = useRouter();
   const [turns, setTurns] = useState<Turn[]>([
     {
-      role: "vyapaarai",
+      role: "digital_dukan",
       text: "Pick a suggestion below, or ask anything. I can guide profile, posts, and reviews — and I won’t claim Google was updated unless the backend confirms it.",
     },
   ]);
@@ -68,11 +68,11 @@ export default function AssistantPage() {
             : message,
         }),
       });
-      setTurns((rows) => [...rows, { role: "vyapaarai", text: data.reply, feedback: true }]);
+      setTurns((rows) => [...rows, { role: "digital_dukan", text: data.reply, feedback: true }]);
     } catch (err) {
       setTurns((rows) => [
         ...rows,
-        { role: "vyapaarai", text: err instanceof Error ? err.message : "Assistant unavailable" },
+        { role: "digital_dukan", text: err instanceof Error ? err.message : "Assistant unavailable" },
       ]);
     } finally {
       setLoading(false);
@@ -130,7 +130,7 @@ export default function AssistantPage() {
             >
               <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-ink-400">{turn.role}</p>
               <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-ink-700">{turn.text}</p>
-              {turn.role === "vyapaarai" && turn.feedback && index === turns.length - 1 && (
+              {turn.role === "digital_dukan" && turn.feedback && index === turns.length - 1 && (
                 <AiFeedback
                   busy={loading}
                   onApprove={() => undefined}
@@ -143,7 +143,7 @@ export default function AssistantPage() {
         <form onSubmit={onSubmit} className="mt-6 flex gap-3">
           <input
             name="message"
-            placeholder="Ask VyapaarAI…"
+            placeholder="Ask Digital Dukan…"
             className="flex-1 rounded-full border border-paper-300 bg-white px-5 py-3 outline-none focus:border-leaf-500"
           />
           <button disabled={loading} className="rounded-full bg-leaf-500 px-5 py-3 font-semibold text-white">

@@ -19,6 +19,7 @@ type Media = {
   id: string;
   source_url?: string;
   category?: string;
+  caption?: string;
   status: string;
   media_format?: string;
 };
@@ -676,16 +677,24 @@ export default function PostsPage() {
       <h2 className="mt-8 font-display text-2xl font-semibold">Photos & videos</h2>
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         {media.map((item) => (
-          <article key={item.id} className="surface rounded-[28px] p-6">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-400">
-              {item.media_format || "PHOTO"} · {item.category}
-            </p>
-            {item.source_url && item.media_format !== "VIDEO" && (
+          <article key={item.id} className="surface overflow-hidden rounded-[28px]">
+            {item.source_url && item.media_format !== "VIDEO" ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={item.source_url} alt="" className="mt-3 max-h-40 w-full rounded-2xl object-cover" />
+              <img
+                src={item.source_url}
+                alt={item.caption || item.category || "Photo"}
+                className="aspect-square w-full object-cover"
+              />
+            ) : (
+              <div className="grid aspect-square place-items-center bg-paper-100 text-sm text-ink-400">Video</div>
             )}
-            <p className="mt-2 break-all text-sm text-ink-700">{item.source_url}</p>
-            <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-leaf-600">{item.status}</p>
+            <div className="p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-400">
+                {item.media_format || "PHOTO"} · {item.category}
+              </p>
+              {item.caption && <p className="mt-2 text-sm leading-relaxed text-ink-700">{item.caption}</p>}
+              <p className="mt-3 text-xs font-semibold uppercase tracking-[0.14em] text-leaf-600">{item.status}</p>
+            </div>
           </article>
         ))}
         {!media.length && <p className="text-sm text-ink-400">No media added yet.</p>}

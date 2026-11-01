@@ -140,12 +140,12 @@ export default function AnalyticsPage() {
       const res = await fetch(`${base}/analytics/reports/${report.id}/download`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       });
-      const text = await res.text();
-      const blob = new Blob([text], { type: "text/plain" });
+      if (!res.ok) throw new Error("PDF download failed");
+      const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `vyapaarai-report-${report.id.slice(0, 8)}.txt`;
+      a.download = `digital-dukan-report-${report.id.slice(0, 8)}.pdf`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (err) {
@@ -293,7 +293,7 @@ export default function AnalyticsPage() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="font-display text-xl font-semibold">Client reports</h2>
-              <p className="mt-1 text-sm text-ink-500">Download a text performance report for this period.</p>
+              <p className="mt-1 text-sm text-ink-500">Download a PDF performance report for this period.</p>
             </div>
             <button
               type="button"

@@ -9,7 +9,7 @@ export default function SettingsPage() {
     >
       <div className="surface rounded-[28px] p-6 space-y-4 text-sm text-ink-600">
         <p>
-          <span className="font-semibold text-ink-900">App:</span> VyapaarAI
+          <span className="font-semibold text-ink-900">App:</span> Digital Dukan
         </p>
         <p>
           <span className="font-semibold text-ink-900">Demo login:</span> owner@rajveerchinese.demo / vyapaarai123

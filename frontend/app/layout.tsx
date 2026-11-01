@@ -13,7 +13,7 @@ const sora = Sora({
 });
 
 export const metadata: Metadata = {
-  title: "VyapaarAI — Google Business Profile, with AI",
+  title: "Digital Dukan — Google Business Profile, with AI",
   description: "Manage reviews, posts, local SEO, and multiple Google Business Profiles from one clean workspace.",
 };
 

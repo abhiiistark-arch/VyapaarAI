@@ -1,4 +1,4 @@
-# VyapaarAI
+# Digital Dukan
 
 ## Local
 

@@ -11,7 +11,7 @@ type I18nContextValue = {
 };
 
 const I18nContext = createContext<I18nContextValue | null>(null);
-const STORAGE_KEY = "vyapaarai_locale";
+const STORAGE_KEY = "digital_dukan_locale";
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [locale, setLocaleState] = useState<Locale>("en");

@@ -48,12 +48,12 @@ export default function LoginPage() {
             Password <span className="font-medium text-ink-700">vyapaarai123</span>
           </p>
         </div>
-        <p className="text-xs uppercase tracking-[0.18em] text-ink-400">VyapaarAI · Demo mode</p>
+        <p className="text-xs uppercase tracking-[0.18em] text-ink-400">Digital Dukan · Demo mode</p>
       </section>
       <section className="flex items-center justify-center px-6 py-16">
         <form onSubmit={onSubmit} className="surface w-full max-w-md rounded-[28px] p-8">
           <h1 className="font-display text-3xl font-semibold">Welcome back</h1>
-          <p className="mt-2 text-sm text-ink-500">Sign in to your VyapaarAI workspace.</p>
+          <p className="mt-2 text-sm text-ink-500">Sign in to your Digital Dukan workspace.</p>
           <label className="mt-8 block text-xs font-semibold uppercase tracking-[0.14em] text-ink-400">Email</label>
           <input
             name="email"

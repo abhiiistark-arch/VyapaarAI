@@ -36,10 +36,10 @@ hydrateFromBackendEnv();
 
 /** App config — mirrors backend/app/core/config.py (env-driven). */
 export const config = {
-  appName: process.env.APP_NAME || "VyapaarAI",
+  appName: process.env.APP_NAME || "Digital Dukan",
   demoMode: (process.env.DEMO_MODE ?? "true").toLowerCase() !== "false",
   useLiveGoogle: (process.env.USE_LIVE_GOOGLE ?? "false").toLowerCase() === "true",
-  secretKey: process.env.SECRET_KEY || "vyapaarai-demo-secret-change-me",
+  secretKey: process.env.SECRET_KEY || "digital-dukan-demo-secret-change-me",
   geminiApiKey: process.env.GEMINI_API_KEY || "",
   geminiModel: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
   geminiFastModel: process.env.GEMINI_FAST_MODEL || "gemini-3.5-flash-lite",

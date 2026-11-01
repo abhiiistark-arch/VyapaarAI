@@ -452,7 +452,7 @@ export function runProfileAudit(store: Store, tenantId: string, locationId?: str
     max_score: 100,
     label: band.label,
     tone: band.tone,
-    note: "VyapaarAI health score from profile completeness signals — not an official Google ranking.",
+    note: "Digital Dukan health score from profile completeness signals — not an official Google ranking.",
     source: "demo_local_profile",
     pillars,
     priority_fixes: priority.map((c) => ({

@@ -12,7 +12,7 @@ const FALLBACK_MODELS = [
 export class GeminiError extends Error {}
 
 const GUARDRAILS_FAST =
-  "You are VyapaarAI, a Google Business Profile assistant for Indian local businesses. Be concise, practical, and brand-safe. Never invent Google policy violations.";
+  "You are Digital Dukan, a Google Business Profile assistant for Indian local businesses. Be concise, practical, and brand-safe. Never invent Google policy violations.";
 
 function modelChain(fast = true) {
   const preferred = fast ? config.geminiFastModel : config.geminiModel;

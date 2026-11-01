@@ -13,17 +13,22 @@ function resolveApiBase() {
 
 const API_BASE = resolveApiBase();
 
+const TOKEN_KEY = "digital_dukan_token";
+const LEGACY_TOKEN_KEY = "vyapaarai_token";
+
 export function getToken() {
   if (typeof window === "undefined") return null;
-  return localStorage.getItem("vyapaarai_token");
+  return localStorage.getItem(TOKEN_KEY) || localStorage.getItem(LEGACY_TOKEN_KEY);
 }
 
 export function setToken(token: string) {
-  localStorage.setItem("vyapaarai_token", token);
+  localStorage.setItem(TOKEN_KEY, token);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
 }
 
 export function clearToken() {
-  localStorage.removeItem("vyapaarai_token");
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(LEGACY_TOKEN_KEY);
 }
 
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {

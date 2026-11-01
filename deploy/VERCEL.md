@@ -1,4 +1,4 @@
-# Deploy VyapaarAI on Vercel
+# Deploy Digital Dukan on Vercel
 
 Next.js app = **`frontend/`** folder.
 

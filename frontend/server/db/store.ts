@@ -198,11 +198,60 @@ export function createEmptyStore(): Store {
   };
 }
 
-export function seedDemoWorkspace(store: Store) {
-  // Clear previous demo rows for re-seed
+function clearDemoTenantData(store: Store) {
+  const oldTenantIds = new Set<string>();
   for (const [uid, user] of store.users) {
-    if (user.email === DEMO_EMAIL) store.users.delete(uid);
+    if (user.email !== DEMO_EMAIL) continue;
+    for (const m of store.memberships.values()) {
+      if (m.user_id === uid) oldTenantIds.add(m.tenant_id);
+    }
+    store.users.delete(uid);
   }
+  for (const t of store.tenants.values()) {
+    if (t.slug === "rajveer-chinese") oldTenantIds.add(t.id);
+  }
+  for (const tid of oldTenantIds) {
+    store.tenants.delete(tid);
+    store.automation.delete(tid);
+    for (const [k, m] of store.memberships) if (m.tenant_id === tid) store.memberships.delete(k);
+    for (const [k, a] of store.accounts) if (a.tenant_id === tid) store.accounts.delete(k);
+    for (const [k, l] of store.locations) if (l.tenant_id === tid) store.locations.delete(k);
+    for (const [k, r] of store.reviews) if (r.tenant_id === tid) store.reviews.delete(k);
+    for (const [k, p] of store.posts) if (p.tenant_id === tid) store.posts.delete(k);
+    for (const [k, m] of store.media) if (m.tenant_id === tid) store.media.delete(k);
+    for (const [k, t] of store.tasks) if (t.tenant_id === tid) store.tasks.delete(k);
+    for (const [k, r] of store.reports) if (r.tenant_id === tid) store.reports.delete(k);
+    for (const [k, c] of store.connections) if (c.tenant_id === tid) store.connections.delete(k);
+  }
+  store.metrics = store.metrics.filter((m) => !oldTenantIds.has(m.tenant_id));
+}
+
+/** Inline SVG posters — always visible on localhost & Vercel (no external CDN / CORS). */
+function demoPhotoDataUrl(title: string, accent: string, subtitle: string) {
+  const esc = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="900" viewBox="0 0 900 900">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${accent}"/>
+      <stop offset="100%" stop-color="#1F1A17"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="900" fill="url(#bg)"/>
+  <circle cx="720" cy="160" r="120" fill="#ffffff" opacity="0.08"/>
+  <circle cx="140" cy="760" r="160" fill="#ffffff" opacity="0.06"/>
+  <rect x="64" y="64" width="772" height="772" rx="36" fill="#ffffff" opacity="0.12"/>
+  <text x="90" y="160" fill="#ffffff" font-family="Georgia,serif" font-size="28" opacity="0.85">Rajveer Chinese</text>
+  <text x="90" y="280" fill="#ffffff" font-family="Georgia,serif" font-size="52">${esc(title)}</text>
+  <text x="90" y="360" fill="#ffffff" font-family="system-ui,sans-serif" font-size="24" opacity="0.9">${esc(subtitle)}</text>
+  <text x="90" y="820" fill="#ffffff" font-family="system-ui,sans-serif" font-size="18" opacity="0.7">Digital Dukan · Demo photo</text>
+</svg>`;
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
+export function seedDemoWorkspace(store: Store) {
+  clearDemoTenantData(store);
 
   const userId = id("usr_");
   const tenantId = id("ten_");
@@ -344,6 +393,33 @@ export function seedDemoWorkspace(store: Store) {
     });
   }
 
+  const mediaRows: Array<[string, string, string, number]> = [
+    [demoPhotoDataUrl("Hakka Noodles", "#C45C26", "Fresh off the wok · Vadjal favourite"), "FOOD_AND_DRINK", "Hakka noodles fresh off the wok — Vadjal favourite.", -1],
+    [demoPhotoDataUrl("Veg Manchurian", "#B33A3A", "Crispy dumplings · tangy gravy"), "FOOD_AND_DRINK", "Bold Indo-Chinese Manchurian, made to order.", -3],
+    [demoPhotoDataUrl("Schezwan Fried Rice", "#8B1E3F", "Right heat · generous portions"), "FOOD_AND_DRINK", "Schezwan fried rice with the right heat.", -5],
+    [demoPhotoDataUrl("Hot & Sour Soup", "#D97706", "House starter classic"), "FOOD_AND_DRINK", "Hot & sour soup — house starter classic.", -7],
+    [demoPhotoDataUrl("Shop Exterior", "#0F766E", "Mayani–Mhaswad Road · Vadjal"), "EXTERIOR", "Evening lights at Rajveer Chinese, Mayani–Mhaswad Road.", -9],
+    [demoPhotoDataUrl("Dining Room", "#1D4ED8", "Family seating · dine-in"), "INTERIOR", "Family seating — dine-in near Yashvantrao Chavan High School.", -11],
+    [demoPhotoDataUrl("Tonight's Specials", "#7C3AED", "Manchurian · chilli paneer · noodles"), "MENU", "Tonight's specials — Manchurian, chilli paneer, noodles.", -13],
+    [demoPhotoDataUrl("Wok Station", "#BE123C", "Weekend rush ready"), "TEAMS", "Wok station ready for the weekend rush.", -15],
+  ];
+
+  for (const [sourceUrl, category, caption, days] of mediaRows) {
+    const mid = id("med_");
+    store.media.set(mid, {
+      id: mid,
+      tenant_id: tenantId,
+      location_id: locationId,
+      post_id: null,
+      source_url: sourceUrl,
+      category,
+      caption,
+      media_format: "PHOTO",
+      status: "published",
+      created_at: daysAgoIso(days),
+    });
+  }
+
   const unanswered = [...store.reviews.values()].filter((r) => r.tenant_id === tenantId && !r.is_answered).length;
   const publishedCount = [...store.posts.values()].filter((p) => p.tenant_id === tenantId && p.status === "published").length;
   const draftCount = [...store.posts.values()].filter((p) => p.tenant_id === tenantId && p.status === "draft").length;
@@ -426,9 +502,15 @@ export function seedDemoWorkspace(store: Store) {
 
 /** Ensure Rajveer demo tenant always exists (Vercel serverless memory resets often; no Postgres yet). */
 export function ensureDemoSeeded(store: Store = getStoreRaw()) {
-  const hasDemoUser = [...store.users.values()].some((u) => u.email === DEMO_EMAIL);
+  const demoUser = [...store.users.values()].find((u) => u.email === DEMO_EMAIL);
+  const membership = demoUser
+    ? [...store.memberships.values()].find((m) => m.user_id === demoUser.id)
+    : undefined;
   const hasLocations = store.locations.size > 0;
-  if (!hasDemoUser || !hasLocations || !store.seeded) {
+  const mediaCount = membership
+    ? [...store.media.values()].filter((m) => m.tenant_id === membership.tenant_id).length
+    : 0;
+  if (!demoUser || !membership || !hasLocations || !store.seeded || mediaCount === 0) {
     seedDemoWorkspace(store);
   }
   return store;
